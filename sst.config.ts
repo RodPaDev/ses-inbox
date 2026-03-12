@@ -10,7 +10,7 @@ export default $config({
 					profile: "personal",
 				},
 			},
-			removal: input?.stage === "production" ? "retain" : "remove",
+			removal: input?.stage === "prod" ? "retain" : "remove",
 		};
 	},
 	async run() {
