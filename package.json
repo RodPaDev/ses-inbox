@@ -1,0 +1,23 @@
+{
+  "name": "ses-inbox",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "provision": "bun run scripts/provision.ts"
+  },
+  "dependencies": {
+    "@ses-inbox/infra": "workspace:*"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1007.0",
+    "@aws-sdk/lib-dynamodb": "^3.1007.0",
+    "@pulumi/aws": "^7.23.0",
+    "@pulumi/pulumi": "^3.225.1",
+    "@types/bun": "latest",
+    "sst": "^4.2.0",
+    "typescript": "^5.7.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
