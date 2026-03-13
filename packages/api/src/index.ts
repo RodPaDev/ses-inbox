@@ -8,8 +8,12 @@ import { Resource } from "sst";
 
 import type { AttachmentMeta } from "./lib/dynamo";
 import { getEmailByMessageId, queryEmails } from "./lib/dynamo";
+import { CURRENT_API_PREFIX, CURRENT_API_VERSION } from "./lib/versioning";
 import type { VerifyKey } from "./middleware/auth";
 import { createApiKeyAuth, hashKey } from "./middleware/auth";
+
+export type { ApiPrefix, ApiVersion } from "./lib/versioning";
+export { CURRENT_API_PREFIX, CURRENT_API_VERSION } from "./lib/versioning";
 
 export interface EmailQueryResult {
 	emails: {
@@ -40,19 +44,29 @@ export interface AppDeps {
 	getSignedRawUrl: (s3Key: string) => Promise<string>;
 	getSignedAttachmentUrl: (s3Key: string) => Promise<string>;
 	verifyKey: VerifyKey;
+	version: string;
 }
 
 export function createApp(deps: AppDeps) {
 	const app = new Hono();
+	const v1 = new Hono();
 
 	const auth = createApiKeyAuth(deps.verifyKey);
 
 	app.get("/health", (c) => c.json({ status: "ok", timestamp: Date.now() }));
+	app.get("/version", (c) =>
+		c.json({ version: deps.version, apiVersions: [CURRENT_API_VERSION] }),
+	);
 
-	app.use("/emails/*", auth);
-	app.use("/emails", auth);
+	v1.use("*", async (c, next) => {
+		await next();
+		c.header("X-API-Version", String(CURRENT_API_VERSION));
+	});
 
-	app.get("/emails", async (c) => {
+	v1.use("/emails/*", auth);
+	v1.use("/emails", auth);
+
+	v1.get("/emails", async (c) => {
 		const inbox = c.req.query("inbox");
 		if (!inbox) {
 			return c.json(
@@ -106,7 +120,7 @@ export function createApp(deps: AppDeps) {
 		return c.json(formatEmailsResponse(result));
 	});
 
-	app.get("/emails/:messageId/raw", async (c) => {
+	v1.get("/emails/:messageId/raw", async (c) => {
 		const { messageId } = c.req.param();
 
 		const email = await deps.getEmailByMessageId(messageId);
@@ -118,7 +132,7 @@ export function createApp(deps: AppDeps) {
 		return c.redirect(url, 302);
 	});
 
-	app.get("/emails/:messageId/attachments/:filename", async (c) => {
+	v1.get("/emails/:messageId/attachments/:filename", async (c) => {
 		const { messageId, filename } = c.req.param();
 
 		const email = await deps.getEmailByMessageId(messageId);
@@ -139,6 +153,8 @@ export function createApp(deps: AppDeps) {
 		return c.redirect(url, 302);
 	});
 
+	app.route("/v1", v1);
+
 	return app;
 }
 
@@ -148,9 +164,9 @@ export function formatEmailsResponse(result: EmailQueryResult) {
 			...rest,
 			attachments: rest.attachments.map(({ s3Key: _, ...att }) => ({
 				...att,
-				url: `/emails/${rest.messageId}/attachments/${att.filename}`,
+				url: `${CURRENT_API_PREFIX}/emails/${rest.messageId}/attachments/${att.filename}`,
 			})),
-			rawUrl: `/emails/${rest.messageId}/raw`,
+			rawUrl: `${CURRENT_API_PREFIX}/emails/${rest.messageId}/raw`,
 		})),
 		nextCursor: result.nextCursor,
 		hasMore: result.hasMore,
@@ -188,6 +204,7 @@ const app = createApp({
 		);
 		return !!result.Item;
 	},
+	version: "0.1.0",
 });
 
 export const handler = handle(app);
