@@ -32,6 +32,10 @@
         "@types/aws-lambda": "^8.10.0",
       },
     },
+    "apps/example": {
+      "name": "@ses-inbox/example",
+      "version": "0.1.0",
+    },
     "apps/ingest": {
       "name": "@ses-inbox/ingest",
       "dependencies": {
@@ -263,6 +267,8 @@
     "@ses-inbox/api": ["@ses-inbox/api@workspace:apps/api"],
 
     "@ses-inbox/core": ["@ses-inbox/core@workspace:packages/core"],
+
+    "@ses-inbox/example": ["@ses-inbox/example@workspace:apps/example"],
 
     "@ses-inbox/infra": ["@ses-inbox/infra@workspace:packages/infra"],
 
