@@ -26,8 +26,14 @@ export interface EmailQueryResult {
 }
 
 export interface AppDeps {
-	queryEmails: (opts: { inbox: string; cursor?: string; limit?: number }) => Promise<EmailQueryResult>;
-	getEmailByMessageId: (messageId: string) => Promise<Record<string, unknown> | null>;
+	queryEmails: (opts: {
+		inbox: string;
+		cursor?: string;
+		limit?: number;
+	}) => Promise<EmailQueryResult>;
+	getEmailByMessageId: (
+		messageId: string,
+	) => Promise<Record<string, unknown> | null>;
 	getSignedRawUrl: (s3Key: string) => Promise<string>;
 	verifyKey: VerifyKey;
 }
@@ -37,9 +43,7 @@ export function createApp(deps: AppDeps) {
 
 	const auth = createApiKeyAuth(deps.verifyKey);
 
-	app.get("/health", (c) =>
-		c.json({ status: "ok", timestamp: Date.now() }),
-	);
+	app.get("/health", (c) => c.json({ status: "ok", timestamp: Date.now() }));
 
 	app.use("/emails/*", auth);
 	app.use("/emails", auth);
@@ -48,14 +52,20 @@ export function createApp(deps: AppDeps) {
 		const inbox = c.req.query("inbox");
 		if (!inbox) {
 			return c.json(
-				{ error: "MISSING_INBOX", message: "inbox query parameter is required" },
+				{
+					error: "MISSING_INBOX",
+					message: "inbox query parameter is required",
+				},
 				400,
 			);
 		}
 
 		if (!/^[a-z0-9._-]+$/i.test(inbox)) {
 			return c.json(
-				{ error: "INVALID_INBOX", message: "Inbox contains invalid characters" },
+				{
+					error: "INVALID_INBOX",
+					message: "Inbox contains invalid characters",
+				},
 				400,
 			);
 		}
@@ -97,10 +107,7 @@ export function createApp(deps: AppDeps) {
 
 		const email = await deps.getEmailByMessageId(messageId);
 		if (!email) {
-			return c.json(
-				{ error: "NOT_FOUND", message: "Email not found" },
-				404,
-			);
+			return c.json({ error: "NOT_FOUND", message: "Email not found" }, 404);
 		}
 
 		const url = await deps.getSignedRawUrl(email.s3Key as string);

@@ -81,7 +81,11 @@ export function createInfra() {
 		],
 	});
 
-	const ses = createSesInbound({ domain, hostedZoneId, bucketArn: emailBucket.arn });
+	const ses = createSesInbound({
+		domain,
+		hostedZoneId,
+		bucketArn: emailBucket.arn,
+	});
 
 	return {
 		apiUrl: api.url,

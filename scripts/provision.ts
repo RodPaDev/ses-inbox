@@ -1,19 +1,20 @@
-import { randomBytes, createHash } from "node:crypto";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-	DynamoDBDocumentClient,
-	PutCommand,
-	DeleteCommand,
-	ScanCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+	DeleteCommand,
+	DynamoDBDocumentClient,
+	PutCommand,
+	ScanCommand,
+} from "@aws-sdk/lib-dynamodb";
 
 function getTableName(): string {
 	const outputsPath = join(import.meta.dirname, "..", ".sst", "outputs.json");
 	const outputs = JSON.parse(readFileSync(outputsPath, "utf-8"));
 	const tableName = outputs.apiKeysTableName;
-	if (!tableName) throw new Error("apiKeysTableName not found in .sst/outputs.json");
+	if (!tableName)
+		throw new Error("apiKeysTableName not found in .sst/outputs.json");
 	return tableName;
 }
 
@@ -78,9 +79,7 @@ async function revokeKey(keyId: string) {
 async function listKeys() {
 	const tableName = getTableName();
 
-	const result = await client.send(
-		new ScanCommand({ TableName: tableName }),
-	);
+	const result = await client.send(new ScanCommand({ TableName: tableName }));
 
 	const items = result.Items ?? [];
 	if (items.length === 0) {

@@ -18,7 +18,15 @@ function makeS3Event(...records: { bucket: string; key: string }[]): S3Event {
 	};
 }
 
-function makeRawEmail(opts: { from?: string; to?: string; subject?: string; messageId?: string; body?: string } = {}) {
+function makeRawEmail(
+	opts: {
+		from?: string;
+		to?: string;
+		subject?: string;
+		messageId?: string;
+		body?: string;
+	} = {},
+) {
 	return [
 		`From: ${opts.from ?? "sender@example.com"}`,
 		`To: ${opts.to ?? "test@receive.example.com"}`,
@@ -63,7 +71,9 @@ describe("createIngestHandler", () => {
 		const deps = mockDeps({ getObject });
 		const handler = createIngestHandler(deps);
 
-		await handler(makeS3Event({ bucket: "b", key: "incoming/hello+world%20test" }));
+		await handler(
+			makeS3Event({ bucket: "b", key: "incoming/hello+world%20test" }),
+		);
 
 		expect(getObject).toHaveBeenCalledWith("b", "incoming/hello world test");
 	});

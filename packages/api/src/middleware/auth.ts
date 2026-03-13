@@ -1,8 +1,8 @@
-import { createMiddleware } from "hono/factory";
+import { createHash } from "node:crypto";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { createMiddleware } from "hono/factory";
 import { Resource } from "sst";
-import { createHash } from "node:crypto";
 
 export function hashKey(plaintext: string): string {
 	return createHash("sha256").update(plaintext).digest("hex");
@@ -27,10 +27,7 @@ export function createApiKeyAuth(verifyKey: VerifyKey) {
 		const valid = await verifyKey(token);
 
 		if (!valid) {
-			return c.json(
-				{ error: "UNAUTHORIZED", message: "Invalid API key" },
-				401,
-			);
+			return c.json({ error: "UNAUTHORIZED", message: "Invalid API key" }, 401);
 		}
 
 		await next();

@@ -54,13 +54,15 @@ interface QueryEmailsOpts {
 	limit?: number;
 }
 
-export async function queryEmails({ inbox, cursor, limit = 50 }: QueryEmailsOpts) {
+export async function queryEmails({
+	inbox,
+	cursor,
+	limit = 50,
+}: QueryEmailsOpts) {
 	const result = await client.send(
 		new QueryCommand({
 			TableName: Resource.EmailsTable.name,
-			KeyConditionExpression: cursor
-				? "PK = :pk AND SK < :sk"
-				: "PK = :pk",
+			KeyConditionExpression: cursor ? "PK = :pk AND SK < :sk" : "PK = :pk",
 			ExpressionAttributeValues: cursor
 				? { ":pk": inbox, ":sk": cursor }
 				: { ":pk": inbox },
@@ -70,7 +72,8 @@ export async function queryEmails({ inbox, cursor, limit = 50 }: QueryEmailsOpts
 	);
 
 	const items = result.Items ?? [];
-	const lastKey = items.length === limit ? items[items.length - 1]?.SK : undefined;
+	const lastKey =
+		items.length === limit ? items[items.length - 1]?.SK : undefined;
 
 	return {
 		emails: items.map((item) => ({

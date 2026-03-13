@@ -15,7 +15,9 @@ export interface IngestDeps {
 	domain: string;
 }
 
-function getAddressText(addr: AddressObject | AddressObject[] | undefined): string {
+function getAddressText(
+	addr: AddressObject | AddressObject[] | undefined,
+): string {
 	if (!addr) return "";
 	if (Array.isArray(addr)) return addr[0]?.text ?? "";
 	return addr.text ?? "";
@@ -61,5 +63,9 @@ export const handler = createIngestHandler({
 		return (await obj.Body?.transformToString()) ?? "";
 	},
 	putEmail,
-	domain: process.env.SES_DOMAIN ?? (() => { throw new Error("SES_DOMAIN not set"); })(),
+	domain:
+		process.env.SES_DOMAIN ??
+		(() => {
+			throw new Error("SES_DOMAIN not set");
+		})(),
 });

@@ -60,8 +60,10 @@ sequenceDiagram
 
 - [Bun](https://bun.sh)
 - [SST v4](https://sst.dev) (`npm i -g sst`)
-- AWS account with SES inbound email enabled in your region
+- AWS account with SES inbound email enabled
 - A domain (or subdomain) for receiving emails
+
+> SES inbound is only available in `us-east-1`, `us-west-2`, and `eu-west-1`.
 
 ## Setup
 
@@ -72,9 +74,16 @@ cp .env.example .env
 
 Configure `.env`:
 
-```
+```bash
+# AWS
+AWS_PROFILE=default
+AWS_REGION=us-east-1 # only us-east-1, us-west-2, eu-west-1 support SES inbound
+
+# SES
 SES_DOMAIN=receive.yourdomain.com
-HOSTED_ZONE_ID=Z1234567890  # Optional: auto-manages DNS via Route 53
+
+# Optional: set to manage DNS via Route 53. Omit to manage DNS externally.
+# HOSTED_ZONE_ID=
 ```
 
 If `HOSTED_ZONE_ID` is omitted, the deploy output will print the DNS records you need to add manually.
@@ -138,6 +147,7 @@ Response:
       "sender": "sender@example.com",
       "recipient": "test@receive.yourdomain.com",
       "subject": "Hello",
+      "body": "<p>Email body</p>",
       "receivedAt": 1234567890,
       "rawUrl": "/emails/abc123/raw"
     }
@@ -165,7 +175,7 @@ bun run remove:dev       # Remove dev stage
 
 ## Project Structure
 
-```
+```md
 ├── sst.config.ts                  # SST app configuration
 ├── scripts/provision.ts           # API key management CLI
 ├── packages/

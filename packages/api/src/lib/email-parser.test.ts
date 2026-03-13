@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseEmailHeaders, extractInbox } from "./email-parser";
+import { extractInbox, parseEmailHeaders } from "./email-parser";
 
 describe("parseEmailHeaders", () => {
 	test("extracts all headers from a standard email", () => {
@@ -161,10 +161,7 @@ describe("extractInbox", () => {
 
 	test("handles multiple recipients (takes first match)", () => {
 		expect(
-			extractInbox(
-				"other@wrong.com, inbox@receive.example.com",
-				domain,
-			),
+			extractInbox("other@wrong.com, inbox@receive.example.com", domain),
 		).toBe("inbox");
 	});
 

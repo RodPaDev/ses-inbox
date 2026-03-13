@@ -9,7 +9,9 @@ function mockDeps(overrides: Partial<AppDeps> = {}): AppDeps {
 			Promise.resolve({ emails: [], nextCursor: undefined, hasMore: false }),
 		),
 		getEmailByMessageId: mock(() => Promise.resolve(null)),
-		getSignedRawUrl: mock(() => Promise.resolve("https://s3.example.com/signed")),
+		getSignedRawUrl: mock(() =>
+			Promise.resolve("https://s3.example.com/signed"),
+		),
 		verifyKey: mock(() => Promise.resolve(true)),
 		...overrides,
 	};
@@ -54,7 +56,9 @@ describe("GET /emails", () => {
 	});
 
 	test("returns 401 with invalid token", async () => {
-		const app = createApp(mockDeps({ verifyKey: () => Promise.resolve(false) }));
+		const app = createApp(
+			mockDeps({ verifyKey: () => Promise.resolve(false) }),
+		);
 		const res = await app.request(authedRequest("/emails?inbox=test"));
 
 		expect(res.status).toBe(401);
@@ -73,7 +77,9 @@ describe("GET /emails", () => {
 		const app = createApp(mockDeps());
 
 		for (const inbox of ["test@bad", "test bad", "test/bad", "<script>"]) {
-			const res = await app.request(authedRequest(`/emails?inbox=${encodeURIComponent(inbox)}`));
+			const res = await app.request(
+				authedRequest(`/emails?inbox=${encodeURIComponent(inbox)}`),
+			);
 			expect(res.status).toBe(400);
 			const body = await res.json();
 			expect(body.error).toBe("INVALID_INBOX");
@@ -83,7 +89,13 @@ describe("GET /emails", () => {
 	test("accepts valid inbox names", async () => {
 		const app = createApp(mockDeps());
 
-		for (const inbox of ["test", "user.name", "user-name", "user_name", "User123"]) {
+		for (const inbox of [
+			"test",
+			"user.name",
+			"user-name",
+			"user_name",
+			"User123",
+		]) {
 			const res = await app.request(authedRequest(`/emails?inbox=${inbox}`));
 			expect(res.status).toBe(200);
 		}
@@ -96,7 +108,9 @@ describe("GET /emails", () => {
 		expect(res0.status).toBe(400);
 		expect((await res0.json()).error).toBe("INVALID_LIMIT");
 
-		const res101 = await app.request(authedRequest("/emails?inbox=test&limit=101"));
+		const res101 = await app.request(
+			authedRequest("/emails?inbox=test&limit=101"),
+		);
 		expect(res101.status).toBe(400);
 		expect((await res101.json()).error).toBe("INVALID_LIMIT");
 	});
@@ -108,7 +122,11 @@ describe("GET /emails", () => {
 		const app = createApp(mockDeps({ queryEmails }));
 		await app.request(authedRequest("/emails?inbox=test"));
 
-		expect(queryEmails).toHaveBeenCalledWith({ inbox: "test", cursor: undefined, limit: 50 });
+		expect(queryEmails).toHaveBeenCalledWith({
+			inbox: "test",
+			cursor: undefined,
+			limit: 50,
+		});
 	});
 
 	test("passes cursor and limit to queryEmails", async () => {
@@ -118,7 +136,11 @@ describe("GET /emails", () => {
 		const app = createApp(mockDeps({ queryEmails }));
 		await app.request(authedRequest("/emails?inbox=test&limit=10&cursor=abc"));
 
-		expect(queryEmails).toHaveBeenCalledWith({ inbox: "test", cursor: "abc", limit: 10 });
+		expect(queryEmails).toHaveBeenCalledWith({
+			inbox: "test",
+			cursor: "abc",
+			limit: 10,
+		});
 	});
 
 	test("returns formatted emails with rawUrl", async () => {
@@ -133,7 +155,11 @@ describe("GET /emails", () => {
 			s3Key: "incoming/abc",
 		};
 		const queryEmails = mock(() =>
-			Promise.resolve({ emails: [email], nextCursor: undefined, hasMore: false }),
+			Promise.resolve({
+				emails: [email],
+				nextCursor: undefined,
+				hasMore: false,
+			}),
 		);
 		const app = createApp(mockDeps({ queryEmails }));
 		const res = await app.request(authedRequest("/emails?inbox=test"));
@@ -163,7 +189,9 @@ describe("GET /emails", () => {
 			Promise.resolve({ emails: [], nextCursor: undefined, hasMore: false }),
 		);
 		const app = createApp(mockDeps({ queryEmails }));
-		const res = await app.request(authedRequest("/emails?inbox=test&wait=true&timeout=1"));
+		const res = await app.request(
+			authedRequest("/emails?inbox=test&wait=true&timeout=1"),
+		);
 
 		expect(res.status).toBe(200);
 		const body = await res.json();
@@ -183,12 +211,18 @@ describe("GET /emails", () => {
 			s3Key: "incoming/abc",
 		};
 		const queryEmails = mock(() =>
-			Promise.resolve({ emails: [email], nextCursor: undefined, hasMore: false }),
+			Promise.resolve({
+				emails: [email],
+				nextCursor: undefined,
+				hasMore: false,
+			}),
 		);
 		const app = createApp(mockDeps({ queryEmails }));
 
 		const start = Date.now();
-		const res = await app.request(authedRequest("/emails?inbox=test&wait=true&timeout=10"));
+		const res = await app.request(
+			authedRequest("/emails?inbox=test&wait=true&timeout=10"),
+		);
 		const elapsed = Date.now() - start;
 
 		expect(res.status).toBe(200);
@@ -202,7 +236,9 @@ describe("GET /emails", () => {
 			Promise.resolve({ emails: [], nextCursor: undefined, hasMore: false }),
 		);
 		const app = createApp(mockDeps({ queryEmails }));
-		const res = await app.request(authedRequest("/emails?inbox=test&wait=true&timeout=1"));
+		const res = await app.request(
+			authedRequest("/emails?inbox=test&wait=true&timeout=1"),
+		);
 
 		expect(res.status).toBe(200);
 		expect(queryEmails).toHaveBeenCalled();
@@ -234,10 +270,14 @@ describe("GET /emails/:messageId/raw", () => {
 			Promise.resolve("https://s3.example.com/signed-url"),
 		);
 		const app = createApp(mockDeps({ getEmailByMessageId, getSignedRawUrl }));
-		const res = await app.request(authedRequest("/emails/msg-1/raw"), { redirect: "manual" });
+		const res = await app.request(authedRequest("/emails/msg-1/raw"), {
+			redirect: "manual",
+		});
 
 		expect(res.status).toBe(302);
-		expect(res.headers.get("Location")).toBe("https://s3.example.com/signed-url");
+		expect(res.headers.get("Location")).toBe(
+			"https://s3.example.com/signed-url",
+		);
 		expect(getSignedRawUrl).toHaveBeenCalledWith("incoming/abc");
 	});
 });
@@ -264,7 +304,9 @@ describe("formatEmailsResponse", () => {
 		const formatted = formatEmailsResponse(result);
 
 		expect(formatted.emails[0].rawUrl).toBe("/emails/msg-1/raw");
-		expect((formatted.emails[0] as Record<string, unknown>).s3Key).toBeUndefined();
+		expect(
+			(formatted.emails[0] as Record<string, unknown>).s3Key,
+		).toBeUndefined();
 	});
 
 	test("preserves pagination fields", () => {
