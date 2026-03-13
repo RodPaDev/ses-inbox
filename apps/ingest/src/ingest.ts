@@ -98,7 +98,7 @@ export function createIngestHandler(deps: IngestDeps) {
 
 			await deps.putEmail({
 				inbox,
-				messageId,
+				messageId: safeMessageId,
 				sender: getAddressText(parsed.from),
 				recipient: to,
 				subject: parsed.subject ?? "",
