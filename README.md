@@ -18,164 +18,45 @@ flowchart LR
     API -->|Pre-signed URL| S3
 ```
 
-### Email Ingestion Flow
-
-```mermaid
-sequenceDiagram
-    participant Sender
-    participant SES
-    participant S3
-    participant Ingest as Ingest Lambda
-    participant DDB as DynamoDB
-
-    Sender->>SES: Send email
-    SES->>S3: Store raw .eml (incoming/)
-    S3->>Ingest: S3 ObjectCreated event
-    Ingest->>S3: GetObject (raw .eml)
-    Ingest->>Ingest: Parse headers (From, To, Subject)
-    Ingest->>DDB: PutItem (inbox, messageId, metadata)
-```
-
-### Email Retrieval Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as API Lambda
-    participant DDB as DynamoDB
-    participant S3
-
-    Client->>API: GET /emails?inbox=test
-    API->>DDB: Query (PK=test, newest first)
-    DDB-->>API: Email metadata
-    API-->>Client: JSON response
-
-    Client->>API: GET /emails/:id/raw
-    API->>DDB: Query MessageIdIndex
-    API->>S3: Generate pre-signed URL
-    API-->>Client: 302 redirect → S3 URL
-```
-
-## Prerequisites
-
-- [Bun](https://bun.sh)
-- [SST v4](https://sst.dev) (`npm i -g sst`)
-- AWS account with SES inbound email enabled
-- A domain (or subdomain) for receiving emails
-
-> SES inbound is only available in `us-east-1`, `us-west-2`, and `eu-west-1`.
-
-## Setup
+## Quick Start
 
 ```bash
+git clone <your-repo-url> ses-inbox
+cd ses-inbox
 bun install
-cp .env.example .env
+cp .env.example .env     # Configure AWS_REGION, SES_DOMAIN, etc.
+bun run deploy:dev       # Deploy to AWS
+bun run provision --create --name my-key  # Create an API key
 ```
 
-Configure `.env`:
+Then query emails:
 
 ```bash
-# AWS
-AWS_PROFILE=default
-AWS_REGION=us-east-1 # only us-east-1, us-west-2, eu-west-1 support SES inbound
-
-# SES
-SES_DOMAIN=receive.yourdomain.com
-
-# Optional: set to manage DNS via Route 53. Omit to manage DNS externally.
-# HOSTED_ZONE_ID=
+curl -H "Authorization: Bearer <token>" \
+  "<api-url>/emails?inbox=test&wait=true"
 ```
 
-If `HOSTED_ZONE_ID` is omitted, the deploy output will print the DNS records you need to add manually.
+## Documentation
 
-## Deploy
+- **[Getting Started](./docs/getting-started.md)** — philosophy, setup, project structure
+- **[Deployment Guide](./docs/deployment.md)** — DNS setup, hosted zones, MX verification, troubleshooting
+- **[API Reference](./docs/api-reference.md)** — endpoints, authentication, request/response examples
 
-```bash
-bun run deploy:dev       # Deploy to dev stage
-bun run deploy:prod      # Deploy to production stage
-```
+## Scripts
 
-## Development
-
-```bash
-bun run dev              # Start SST dev mode (live Lambda)
-```
-
-## API Key Management
-
-After deploying, create an API key to authenticate requests:
-
-```bash
-bun run provision --create --name my-key
-```
-
-The token is shown once and cannot be retrieved again. Store it securely.
-
-```bash
-bun run provision --list              # List all keys
-bun run provision --revoke <keyId>    # Revoke a key
-```
-
-## API
-
-All `/emails` endpoints require `Authorization: Bearer <token>`.
-
-### `GET /health`
-
-Returns `{ "status": "ok", "timestamp": 1234567890 }`.
-
-### `GET /emails`
-
-Query parameters:
-
-| Param     | Required | Default | Description                          |
-|-----------|----------|---------|--------------------------------------|
-| `inbox`   | yes      |         | Inbox name (local part of the email) |
-| `limit`   | no       | 50      | Results per page (1-100)             |
-| `cursor`  | no       |         | Pagination cursor from previous call |
-| `wait`    | no       | false   | Enable long-poll mode                |
-| `timeout` | no       | 28      | Long-poll max wait in seconds        |
-
-Response:
-
-```json
-{
-  "emails": [
-    {
-      "messageId": "abc123",
-      "inbox": "test",
-      "sender": "sender@example.com",
-      "recipient": "test@receive.yourdomain.com",
-      "subject": "Hello",
-      "body": "<p>Email body</p>",
-      "receivedAt": 1234567890,
-      "rawUrl": "/emails/abc123/raw"
-    }
-  ],
-  "nextCursor": "...",
-  "hasMore": false
-}
-```
-
-### `GET /emails/:messageId/raw`
-
-Returns a `302` redirect to a pre-signed S3 URL (15-minute expiry) for the raw `.eml` file.
-
-## Data Retention
-
-- DynamoDB: 7-day TTL
-- S3: 8-day lifecycle expiration
-- The 1-day buffer ensures S3 objects are cleaned up after their index entries expire.
-
-## Teardown
-
-```bash
-bun run remove:dev       # Remove dev stage
-```
+| Command | Description |
+| --- | --- |
+| `bun run deploy:dev` | Deploy to dev stage |
+| `bun run deploy:prod` | Deploy to production |
+| `bun run dev` | Start SST dev mode (live Lambda) |
+| `bun run remove:dev` | Remove dev stage |
+| `bun run provision` | Manage API keys |
+| `bun run test` | Run tests |
+| `bun run lint` | Run Biome linter |
 
 ## Project Structure
 
-```md
+```text
 ├── sst.config.ts                  # SST app configuration
 ├── scripts/provision.ts           # API key management CLI
 ├── packages/
@@ -189,3 +70,7 @@ bun run remove:dev       # Remove dev stage
 │       ├── index.ts               # S3, DynamoDB, Lambda definitions
 │       └── ses-inbound.ts         # SES receipt rules (raw Pulumi)
 ```
+
+## License
+
+Private
