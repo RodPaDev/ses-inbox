@@ -7,9 +7,9 @@ export function formatEmailsResponse(result: EmailQueryResult) {
 			...rest,
 			attachments: rest.attachments.map(({ s3Key: _, ...att }) => ({
 				...att,
-				url: `${CURRENT_API_PREFIX}/emails/${rest.messageId}/attachments/${att.filename}`,
+				url: `${CURRENT_API_PREFIX}/emails/${encodeURIComponent(rest.messageId)}/attachments/${encodeURIComponent(att.filename)}`,
 			})),
-			rawUrl: `${CURRENT_API_PREFIX}/emails/${rest.messageId}/raw`,
+			rawUrl: `${CURRENT_API_PREFIX}/emails/${encodeURIComponent(rest.messageId)}/raw`,
 		})),
 		nextCursor: result.nextCursor,
 		hasMore: result.hasMore,
