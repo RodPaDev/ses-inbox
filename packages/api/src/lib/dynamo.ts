@@ -10,7 +10,7 @@ const client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
 const SEVEN_DAYS_SEC = 7 * 24 * 60 * 60;
 
-interface EmailItem {
+export interface EmailItem {
 	inbox: string;
 	messageId: string;
 	sender: string;

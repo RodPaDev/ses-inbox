@@ -7,7 +7,8 @@
     "deploy:dev": "npx sst deploy --stage dev",
     "deploy:prod": "npx sst deploy --stage prod",
     "dev": "npx sst dev --stage dev",
-    "remove:dev": "npx sst remove --stage dev"
+    "remove:dev": "npx sst remove --stage dev",
+    "test": "bun test --preload ./test-preload.ts packages/"
   },
   "dependencies": {
     "@ses-inbox/infra": "workspace:*"
