@@ -137,6 +137,77 @@ Go to [SES → Verified Identities](https://console.aws.amazon.com/ses/home#/ver
 
 ---
 
+## Custom Domain (API)
+
+By default, the API is served at an auto-generated Lambda Function URL. You can optionally serve it at a custom domain like `api.inbox.yourdomain.com` by setting the `API_DOMAIN` environment variable.
+
+### Option A: Automatic DNS (Route 53)
+
+If you already have `HOSTED_ZONE_ID` set for SES DNS, the same hosted zone is used to create the API domain records and ACM certificate automatically.
+
+```bash
+SES_DOMAIN=receive.yourdomain.com
+HOSTED_ZONE_ID=Z1234567890ABC
+API_DOMAIN=api.inbox.yourdomain.com
+```
+
+Deploy as usual — SST provisions an ACM certificate, validates it via Route 53, and creates a CloudFront distribution.
+
+### Option B: External DNS
+
+If your DNS is managed outside Route 53, omit `HOSTED_ZONE_ID`:
+
+```bash
+SES_DOMAIN=receive.yourdomain.com
+API_DOMAIN=api.inbox.yourdomain.com
+```
+
+#### 1. Start the deployment
+
+```bash
+bun run deploy:dev
+```
+
+The deployment will provision an ACM certificate and **pause** while it waits for DNS validation. SST does not print the validation records — you need to retrieve them from AWS.
+
+#### 2. Retrieve the ACM validation record
+
+While the deploy is paused, open a separate terminal and run:
+
+```bash
+aws acm list-certificates --query "CertificateSummaryList[?DomainName=='api.inbox.yourdomain.com'].CertificateArn" --output text
+```
+
+Then describe the certificate to get the validation CNAME:
+
+```bash
+aws acm describe-certificate \
+  --certificate-arn <arn-from-above> \
+  --query "Certificate.DomainValidationOptions[0].ResourceRecord"
+```
+
+This returns the CNAME name and value needed for validation.
+
+#### 3. Add the validation CNAME
+
+In your DNS provider, create a **CNAME** record with the name and value from the previous step.
+
+#### 4. Wait for validation
+
+Once DNS propagates, ACM validates the certificate and the paused deployment resumes automatically. This can take a few minutes.
+
+#### 5. Add the API domain CNAME
+
+After the deployment completes, the output includes an `apiDomainCname` record. Add that **CNAME** in your DNS provider to point your custom domain to the CloudFront distribution.
+
+### Behavior
+
+- All existing endpoints (`/health`, `/docs`, `/v1/emails`, etc.) respond at the custom domain
+- The `apiUrl` SST output reflects the custom domain when configured
+- Omitting `API_DOMAIN` keeps the default Lambda Function URL — no changes needed
+
+---
+
 ## Domain Recommendations
 
 - **Use a subdomain** (e.g., `receive.yourdomain.com`, `inbox.yourdomain.com`) rather than your root domain. This avoids conflicts with existing MX records for your primary email.
