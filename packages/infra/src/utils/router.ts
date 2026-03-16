@@ -1,5 +1,25 @@
 /// <reference path="../../../../.sst/platform/config.d.ts" />
 
+function lookupCertificate(apiDomain: string) {
+  return aws.acm.getCertificateOutput({
+    domain: apiDomain,
+    statuses: ["ISSUED"],
+    mostRecent: true,
+  }).arn;
+}
+
+function buildDomainConfig(apiDomain: string, hostedZoneId?: string) {
+  if (hostedZoneId) {
+    return { name: apiDomain, dns: sst.aws.dns({ zone: hostedZoneId }) };
+  }
+
+  return {
+    name: apiDomain,
+    dns: false as const,
+    cert: lookupCertificate(apiDomain),
+  };
+}
+
 export function createApiRouter(
   api: sst.aws.Function,
   apiDomain: string,
@@ -9,8 +29,6 @@ export function createApiRouter(
     routes: {
       "/*": api.url,
     },
-    domain: hostedZoneId
-      ? { name: apiDomain, dns: sst.aws.dns({ zone: hostedZoneId }) }
-      : { name: apiDomain },
+    domain: buildDomainConfig(apiDomain, hostedZoneId),
   });
 }
