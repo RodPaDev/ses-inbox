@@ -29,18 +29,22 @@ function parseDnsRecords(outputs: Record<string, string>): DnsRecord[] {
   return records;
 }
 
+function fqdn(name: string): string {
+  return name.endsWith(".") ? name : `${name}.`;
+}
+
 function toBind(record: DnsRecord): string {
   const ttl = 300;
 
   switch (record.type) {
     case "TXT":
-      return `${record.name}\t${ttl}\tIN\tTXT\t"${record.value}"`;
+      return `${fqdn(record.name)}\t${ttl}\tIN\tTXT\t"${record.value}"`;
     case "MX":
-      return `${record.name}\t${ttl}\tIN\tMX\t${record.priority}\t${record.value}`;
+      return `${fqdn(record.name)}\t${ttl}\tIN\tMX\t${record.priority}\t${fqdn(record.value)}`;
     case "CNAME":
-      return `${record.name}\t${ttl}\tIN\tCNAME\t${record.value}`;
+      return `${fqdn(record.name)}\t${ttl}\tIN\tCNAME\t${fqdn(record.value)}`;
     default:
-      return `${record.name}\t${ttl}\tIN\t${record.type}\t${record.value}`;
+      return `${fqdn(record.name)}\t${ttl}\tIN\t${record.type}\t${record.value}`;
   }
 }
 
