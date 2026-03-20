@@ -30,6 +30,7 @@ jobs:
 
   test-unit:
     name: Test
+    if: github.event_name == 'push' || !github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     env:
       SES_DOMAIN: ${{ secrets.SES_DOMAIN }}
@@ -38,9 +39,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run test
-  
+
   test-e2e:
     name: Test E2E
+    if: github.event_name == 'push' || !github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     env:
       # these are required for sending emails using ses. for the e2e tests
