@@ -7,7 +7,7 @@ import {
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Scalar } from "@scalar/hono-api-reference";
-import { createEmailRepository } from "@ses-inbox/core";
+import { createEmailRepository } from "@rodavel/mail-catcher-core";
 import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
 import { openAPIRouteHandler } from "hono-openapi";
@@ -48,7 +48,7 @@ export function createApp(deps: AppDeps) {
 			openAPIRouteHandler(app, {
 				documentation: {
 					info: {
-						title: "ses-inbox",
+						title: "mail-catcher",
 						version: deps.version,
 						description: "Serverless email receiving API powered by AWS SES",
 					},

@@ -1,5 +1,5 @@
 {
-	"name": "@ses-inbox/e2e",
+	"name": "@rodavel/mail-catcher-e2e",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
@@ -9,7 +9,7 @@
 	"type": "module",
 	"dependencies": {
 		"@aws-sdk/client-sesv2": "^3.1009.0",
-		"@ses-inbox/api": "workspace:*",
+		"@rodavel/mail-catcher-api": "workspace:*",
 		"zod": "^4.3.6"
 	}
 }

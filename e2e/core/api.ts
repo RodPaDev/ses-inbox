@@ -3,7 +3,7 @@ import type {
 	DeleteSingleResponse,
 	EmailListResponse,
 	EmailResponse,
-} from "@ses-inbox/api";
+} from "@rodavel/mail-catcher-api";
 import { apiHeaders, apiUrl } from "./config";
 
 async function request(path: string, init?: RequestInit) {

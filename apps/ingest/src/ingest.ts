@@ -9,7 +9,7 @@ import {
 	type AttachmentMeta,
 	createEmailRepository,
 	type EmailItem,
-} from "@ses-inbox/core";
+} from "@rodavel/mail-catcher-core";
 import type { S3Event } from "aws-lambda";
 import { type AddressObject, simpleParser } from "mailparser";
 import { Resource } from "sst";

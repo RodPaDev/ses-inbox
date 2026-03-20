@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { EmailItem } from "@ses-inbox/core";
+import type { EmailItem } from "@rodavel/mail-catcher-core";
 import type { S3Event, S3EventRecord } from "aws-lambda";
 import { createIngestHandler, type IngestDeps } from "./ingest";
 

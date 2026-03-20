@@ -1,4 +1,4 @@
-import { type EmailFilters, sleep } from "@ses-inbox/core";
+import { type EmailFilters, sleep } from "@rodavel/mail-catcher-core";
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import { formatEmailResponse, formatEmailsResponse } from "../../lib/format";
