@@ -40,6 +40,11 @@ jobs:
   test-e2e:
     name: Test E2E
     runs-on: ubuntu-latest
+    env:
+      API_URL: ${{ secrets.API_URL }}
+      API_DOMAIN: ${{ secrets.API_DOMAIN }}
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      SES_DOMAIN: ${{ secrets.SES_DOMAIN }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
