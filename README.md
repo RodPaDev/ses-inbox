@@ -40,7 +40,7 @@ curl -H "Authorization: Bearer <token>" \
 
 ## Documentation
 
-Full documentation is available at [rodavel.com/docs/mail-catcher](https://rodavel.com/docs/mail-catcher).
+Full documentation is available at [rodavel.com/docs/mail-catcher](https://rodavel.com/collection/mail-catcher).
 
 ## Scripts
 
